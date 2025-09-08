@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using WebSocketClient_WPF.ViewModel;
 using WebSocketClient_WPF.Websocket;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WebSocketClient_WPF
 {
@@ -40,50 +41,76 @@ namespace WebSocketClient_WPF
             CreateBoardGrid(PlayerBoardGrid);
             CreateBoardGrid(EnemyBoardGrid);
 
-
-            /// TEST MESSAGES
-            for (int i = 1; i <= 10; i++)
-            {
-                _vm.AddMessToChat($"Test message {i}");
-            }
-
-            for (int i = 1; i <= 10; i++)
-            {
-                _vm.AddServerMessage($"Test message {i}");
-            }
-
         }
 
-        private void CreateBoardGrid(Grid grid)
+        private void CreateBoardGrid(Grid playableAreaGrid)
         {
+            // creating 11x11 grid
+            for (int i = 0; i <= 10; i++)
+            {
+                playableAreaGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                playableAreaGrid.RowDefinitions.Add(new RowDefinition());
+                playableAreaGrid.ShowGridLines = false;
+                playableAreaGrid.HorizontalAlignment = HorizontalAlignment.Center;
+                playableAreaGrid.VerticalAlignment = VerticalAlignment.Center;
+            }
+
+            char boardNaming; 
+
+            // populating grid with UI objects
             for (int i = 1; i <= 10; i++)
             {
-                grid.ColumnDefinitions.Add(new ColumnDefinition());
-                grid.RowDefinitions.Add(new RowDefinition());
-                grid.ShowGridLines = true;
-                grid.HorizontalAlignment = HorizontalAlignment.Center;
-                grid.VerticalAlignment = VerticalAlignment.Center;
-
+                boardNaming = '@';  // @ is one char "before" A
                 for (int j = 1; j <= 10; j++)
                 {
+                    boardNaming++;
+
+                    // textblocks with board naming (A,B,C ...)
+                    TextBlock boardNamingTop = new TextBlock()
+                    {
+                        Text = $"{boardNaming}",
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        VerticalAlignment = VerticalAlignment.Stretch,
+                        MinHeight = 20,
+                        TextAlignment = TextAlignment.Center
+                    };
+                    Grid.SetRow(boardNamingTop, 0);
+                    Grid.SetColumn(boardNamingTop, j);
+                    playableAreaGrid.Children.Add(boardNamingTop);
+
+                    // textblock with board naming (1,2,3 ...)
+                    TextBlock boardNamingLeft = new TextBlock()
+                    {
+                        Text = $"{j}",
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        VerticalAlignment = VerticalAlignment.Stretch,
+                        MinWidth = 20,
+                        TextAlignment = TextAlignment.Center
+                    };
+
+                    Grid.SetRow(boardNamingLeft, j);
+                    Grid.SetColumn(boardNamingLeft, 0);
+                    playableAreaGrid.Children.Add(boardNamingLeft);
+
+                    // TODO: change textblock to some other clickable object
                     TextBlock text = new TextBlock()
-                    { Text = $"{j}{i}", HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, MinHeight = 30, MinWidth = 30, TextAlignment = TextAlignment.Center };
+                    { Text = $"{boardNaming}{i}", HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, MinHeight = 30, MinWidth = 30, TextAlignment = TextAlignment.Center };
 
                     text.MouseLeftButtonDown += new MouseButtonEventHandler(BoardMouseLeftButtonDown);
                     Border boardField = new Border()
                     { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Background = Brushes.LightBlue, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                     boardField.Child = text;
-                    Grid.SetColumn(boardField, j - 1);
-                    Grid.SetRow(boardField, i - 1);
-                    grid.Children.Add(boardField);
+                    Grid.SetColumn(boardField, j );
+                    Grid.SetRow(boardField, i );
+                    playableAreaGrid.Children.Add(boardField);
                 }
             }
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            await _serverConnection.Connect();
-            _ = _messageHandler.StartMessageListener();
+            //await _serverConnection.Connect();
+            //_ = _messageHandler.StartMessageListener();
         }
 
         private async void Button_Click_SendChatMessage(object sender, RoutedEventArgs e)
@@ -91,7 +118,7 @@ namespace WebSocketClient_WPF
             if (string.IsNullOrWhiteSpace(MessageTextBox.Text))
                 return;
 
-            await _messageHandler.SendMessageAsync(MessageTextBox, MessageHandler.MessageType.Chat);
+            await _messageHandler.SendMessageAsync(messageOrigin: MessageTextBox, messageType: MessageHandler.MessageType.Chat);
             _vm.AddMessToChat($"You: {MessageTextBox.Text}");
             ChatScroll.ScrollToEnd();
             MessageTextBox.Clear();

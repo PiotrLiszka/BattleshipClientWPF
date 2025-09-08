@@ -19,7 +19,8 @@ namespace WebSocketClient_WPF.Websocket
         {
             Chat,
             Shot,
-            ServerInfo
+            ServerInfo,
+            GameState
         }
 
         public MessageHandler(ClientWebSocket client, MainWindowViewModel vm)
@@ -67,7 +68,6 @@ namespace WebSocketClient_WPF.Websocket
 
                     //_vm.AddMessToChat($"Enemy: {message.Trim()}");
 
-                    //// tutaj odpalic funkcje ktora sprawdza jaka wiadomosc przyszla i gdzie ja wyswietlic
                     _vm.ParseMessageToUI(message.Trim());
                 }
             }
@@ -79,6 +79,12 @@ namespace WebSocketClient_WPF.Websocket
             //// tutaj skończone bo mam pierdolca
         }
 
+        /// <summary>
+        /// Sends message based on which button is pressed
+        /// </summary>
+        /// <param name="messageOrigin">UI element that message is taken from</param>
+        /// <param name="messageType">Message type</param>
+        /// <returns></returns>
         internal async Task SendMessageAsync(UIElement messageOrigin, MessageType messageType)
         {
             // target message string for now - "messageType|messageContents"

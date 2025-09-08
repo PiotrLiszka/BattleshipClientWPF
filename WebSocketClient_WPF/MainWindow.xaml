@@ -41,6 +41,7 @@
 
             <!-- Server connection status -->
             <Label Grid.Row="1" Grid.Column="1" Content="{Binding ServerStatus}" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
+            
 
             <!-- Server and game info panel -->
             <DockPanel Grid.Row="1" Grid.ColumnSpan="2" LastChildFill="False">
