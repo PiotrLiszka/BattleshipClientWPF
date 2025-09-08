@@ -23,6 +23,7 @@ namespace WebSocketClient_WPF
     public partial class MainWindow : Window
     {
         private SeverConnection _serverConnection;
+        private MessageHandler _messageHandler;
 
         private MainWindowViewModel _vm;
 
@@ -33,6 +34,8 @@ namespace WebSocketClient_WPF
             DataContext = _vm;
 
             _serverConnection = new SeverConnection(_vm);
+            _messageHandler = new MessageHandler(_serverConnection.Client, _vm);
+
 
             CreateBoardGrid(PlayerBoardGrid);
             CreateBoardGrid(EnemyBoardGrid);
@@ -79,8 +82,8 @@ namespace WebSocketClient_WPF
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //await _serverConnection.Connect();
-            //_ = _serverConnection.StartMessageListener();
+            await _serverConnection.Connect();
+            _ = _messageHandler.StartMessageListener();
         }
 
         private async void Button_Click_SendChatMessage(object sender, RoutedEventArgs e)
@@ -88,7 +91,7 @@ namespace WebSocketClient_WPF
             if (string.IsNullOrWhiteSpace(MessageTextBox.Text))
                 return;
 
-            await _serverConnection.SendMessageAsync(MessageTextBox, SeverConnection.MessageType.Chat);
+            await _messageHandler.SendMessageAsync(MessageTextBox, MessageHandler.MessageType.Chat);
             _vm.AddMessToChat($"You: {MessageTextBox.Text}");
             ChatScroll.ScrollToEnd();
             MessageTextBox.Clear();
@@ -108,8 +111,6 @@ namespace WebSocketClient_WPF
                 return;
             if (sender is TextBlock)
                 _vm.SelectedBox = ((TextBlock)sender).Text;
-            if (sender is Border)
-                _vm.SelectedBox = ((Border)sender).Name;
 
         }
     }

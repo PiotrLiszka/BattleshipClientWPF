@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using WebSocketClient_WPF.Websocket;
 
 namespace WebSocketClient_WPF.ViewModel
 {
@@ -57,14 +58,30 @@ namespace WebSocketClient_WPF.ViewModel
             }
         }
 
+        internal void ParseMessageToUI(string message)
+        {
+            string[] result;
+            char messageSeparator = '|';
+            result = message.Split(messageSeparator, StringSplitOptions.TrimEntries);
+
+            if (result.Length == 0)
+                return;
+
+            if (result[0].Equals(MessageHandler.MessageType.Chat.ToString()))
+            {
+                ChatMessages.Add($"Enemy: {result[1]}");
+                return;
+            }
+            if (result[0].Equals(MessageHandler.MessageType.ServerInfo.ToString()))
+            {
+                ServerMessages.Add($"Server Message: {result[1]}");
+                return;
+            }
+        }
+
         public void AddMessToChat(string message)
         {
             ChatMessages.Add(message);
-        }
-
-        public void AddServerMessage(string message)
-        {
-            ServerMessages.Add(message);
         }
 
         public void ChangeServerStatus(string status)

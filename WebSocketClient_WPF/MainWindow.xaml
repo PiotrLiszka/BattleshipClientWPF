@@ -42,10 +42,11 @@
             <!-- Server connection status -->
             <Label Grid.Row="1" Grid.Column="1" Content="{Binding ServerStatus}" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
 
+            <!-- Server and game info panel -->
             <DockPanel Grid.Row="1" Grid.ColumnSpan="2" LastChildFill="False">
                 <Border DockPanel.Dock="Left" BorderThickness="2" BorderBrush="Black" Margin="2,2,2,2" CornerRadius="5" MinWidth="530">
                     
-                <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True" Margin="5,10,5,10">
                     
                     <ItemsControl ItemsSource="{Binding ServerMessages}">
                         <ItemsControl.ItemTemplate>
