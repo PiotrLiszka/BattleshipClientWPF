@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WebSocketClient_WPF"
         mc:Ignorable="d"
-        Title="Battleship" Height="600" Width="1000" MinHeight="800" MaxHeight="900" MinWidth="1200" MaxWidth="1400" Loaded="Window_Loaded">
+        Title="Battleship" Height="800" Width="1200" MinHeight="800" MaxHeight="900" MinWidth="1200" MaxWidth="1400" Loaded="Window_Loaded">
     <!-- Main grid splitting game window into play area and chat area -->
     <Grid>
         <Grid.ColumnDefinitions>
@@ -14,7 +14,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Play area, left side of the window -->
-        <Grid>
+        <Grid Focusable="True" KeyDown="Grid_KeyDown" MouseEnter="GameGrid_MouseEnter" x:Name="GameGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width=".5*" />
                 <ColumnDefinition Width=".5*" />
@@ -25,19 +25,32 @@
             </Grid.RowDefinitions>
 
             <!-- Player's board -->
-            <Border BorderThickness="3,3,3,3" BorderBrush="Black" CornerRadius="5" Padding="2" Margin="2"/>
-            <StackPanel x:Name="PlayerBoardStackPanel" Orientation="Vertical">
-                <Label Content="Your board" HorizontalAlignment="Center" Padding="30"/>
-                <Grid x:Name="PlayerBoardGrid" Margin="5,50,5,5" />
-                <Label Content="{Binding SelectedBox}" HorizontalAlignment="Center" />
-            </StackPanel>
+            <Border BorderThickness="3,3,3,3" BorderBrush="Black" CornerRadius="5" Padding="2" Margin="2">
+                <StackPanel x:Name="PlayerBoardStackPanel" Orientation="Vertical">
+                    <Label Content="Your board" HorizontalContentAlignment="Center" Padding="30" FontSize="25"/>
+                    <Grid x:Name="PlayerAreaGrid" Margin="5,50,5,5" />
+                    <Label Content="{Binding SelectedBox}" HorizontalContentAlignment="Center" />
+                </StackPanel>
+            </Border>
 
             <!-- Enemy's board -->
-            <Border BorderThickness="3,3,3,3" BorderBrush="Black" CornerRadius="5" Grid.Column="1" Margin="2"/>
-            <StackPanel Grid.Column="1">
-                <Label Content="Enemy's board" HorizontalAlignment="Center" Padding="30"/>
-                <Grid x:Name="EnemyBoardGrid" Margin="5,50,5,5" />
-            </StackPanel>
+            <Border BorderThickness="3,3,3,3" BorderBrush="Black" CornerRadius="5" Grid.Column="1" Margin="2" Name="EnemyBoard" Visibility="Collapsed">
+                <StackPanel>
+                    <Label Content="Enemy's board" HorizontalContentAlignment="Center" Padding="30" FontSize="25"/>
+                    <Grid x:Name="EnemyAreaGrid" Margin="5,50,5,5" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Pre game ship placement -->
+            <Border BorderThickness="3,3,3,3" BorderBrush="Black" CornerRadius="5" Grid.Column="1" Margin="2" Name="ShipPlacement">
+                <StackPanel>
+                    <Label Content="Select ship to place" HorizontalContentAlignment="Center" Padding="30" FontSize="30" />
+                    <RadioButton GroupName="ShipGroup" Tag="Size1" Content="Size 1" HorizontalAlignment="Center" FontSize="20" IsChecked="True" Checked="ShipRadioButton_Checked"/>
+                    <RadioButton GroupName="ShipGroup" Tag="Size2" Content="Size 2" HorizontalAlignment="Center" FontSize="20" Checked="ShipRadioButton_Checked"/>
+                    <RadioButton GroupName="ShipGroup" Tag="Size3" Content="Size 3" HorizontalAlignment="Center" FontSize="20" Checked="ShipRadioButton_Checked"/>
+                    <RadioButton GroupName="ShipGroup" Tag="Size4" Content="Size 4" HorizontalAlignment="Center" FontSize="20" Checked="ShipRadioButton_Checked"/>
+                </StackPanel>
+            </Border>
 
             <!-- Server connection status -->
             <Label Grid.Row="1" Grid.Column="1" Content="{Binding ServerStatus}" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
@@ -59,7 +72,10 @@
                     
                 </ScrollViewer>
                 </Border>
-                <Button DockPanel.Dock="Top" Content="SHOT" Padding="10" Margin="10" Click="Button_Click_PlayerShot"/>
+                <Button DockPanel.Dock="Top" Content="SHOT" Padding="10" Margin="10" Click="Button_Click_PlayerShot" />
+                <Rectangle  Fill="Black" Height="100" Width="100" RadiusX="20" RadiusY="20"/>
+                <Label Content="{Binding ShipOrientation}"/>
+                <Label Content="{Binding ShipLength}" />
             </DockPanel>
         </Grid>
 

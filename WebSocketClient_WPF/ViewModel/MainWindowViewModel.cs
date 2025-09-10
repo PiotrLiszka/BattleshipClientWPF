@@ -17,6 +17,15 @@ namespace WebSocketClient_WPF.ViewModel
     {
         private string _serverStatus = "Server Connection";
         private string _selectedBox = "CLICK";
+        private UIElement? _selectedField = null;
+        private ShipOrientations _shipOrientation = ShipOrientations.Horizontal;
+        private int _shipLength = 1;
+
+        internal enum ShipOrientations
+        {
+            Horizontal,
+            Vertical
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] String propertyname = "")
@@ -41,7 +50,6 @@ namespace WebSocketClient_WPF.ViewModel
                 }
             }
         }
-
         public string SelectedBox
         {
             get
@@ -55,6 +63,32 @@ namespace WebSocketClient_WPF.ViewModel
                     this._selectedBox = value;
                     NotifyPropertyChanged();
                 }
+            }
+        }
+
+        public ShipOrientations ShipOrientation
+        {
+            get
+            {
+                return this._shipOrientation;
+            }
+            set
+            {
+                this._shipOrientation = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public int ShipLength
+        {
+            get
+            {
+                return this._shipLength;
+            }
+            set
+            {
+                this._shipLength = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -89,7 +123,16 @@ namespace WebSocketClient_WPF.ViewModel
             StringBuilder sb = new StringBuilder();
             sb.Append("Sever connection: ").Append(status);
             ServerStatus = sb.ToString();
+        }
 
+        public void ChangeShipOrientation()
+        {
+            if (ShipOrientation == ShipOrientations.Horizontal)
+            {
+                ShipOrientation = ShipOrientations.Vertical;
+                return;
+            }
+            ShipOrientation = ShipOrientations.Horizontal;
         }
 
     }
