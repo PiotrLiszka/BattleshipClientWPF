@@ -101,7 +101,7 @@ namespace WebSocketClient_WPF
                     field.MouseLeave += new MouseEventHandler(MouseLeaveField);
 
                     Border fieldBorder = new Border()
-                    { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Background = Brushes.LightBlue, MinHeight = 30, MinWidth = 30 };
+                    { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Background = Brushes.LightBlue, MinHeight = 30, MinWidth = 30, Tag = "field" };
                     fieldBorder.Child = field;
 
                     Grid.SetColumn(fieldBorder, j );
@@ -213,28 +213,64 @@ namespace WebSocketClient_WPF
             if (_vm.ShipLength == 0)
                 return [_playerBoardElements[col, row]];
 
-            if (col + _vm.ShipLength > 10)
-                col = 10 - _vm.ShipLength;
-
             Rectangle[] fields = new Rectangle[_vm.ShipLength];
+
+            if (_vm.ShipOrientation == MainWindowViewModel.ShipOrientations.Horizontal)
+            {
+                if (col + _vm.ShipLength > 10)
+                    col = 10 - _vm.ShipLength;
+
+                for (int i = 0; i < _vm.ShipLength; i++)
+                {
+                    fields[i] = _playerBoardElements[col + i, row];
+                }
+                return fields;
+            }
+
+            if (row + _vm.ShipLength > 10)
+                row = 10 - _vm.ShipLength;
+
             for (int i = 0; i < _vm.ShipLength; i++)
             {
-                fields[i] = _playerBoardElements[col + i, row];
+                fields[i] = _playerBoardElements[col, row + i];
             }
             return fields;
         }
 
-        private void Grid_KeyDown(object sender, KeyEventArgs e)
+        private void PlayerAreaGrid_KeyDown(object sender, KeyEventArgs e)
         {
+            // rotate ship orientation at the ship placing phase
             if (e.Key == Key.R)
             {
+                if (_vm.ShipLength == 1)
+                {
+                    return;
+                }
+                // check if mouse is over gameboards field, if so try to dynamically rotate ship
+                var obj = Mouse.DirectlyOver;
+                if (obj == null)
+                    return;
+                if (obj is not Rectangle)
+                    return;
+
+                Rectangle field = (Rectangle)obj;
+                if (field.Parent is not Border)
+                    return;
+
+                Border border = (Border)field.Parent;
+                if (border.Tag.ToString() != "field")
+                    return;
+
+                EnterLeaveFieldColorChange(field, false);
                 _vm.ChangeShipOrientation();
+                EnterLeaveFieldColorChange(field, true);
+
             }
         }
 
-        private void GameGrid_MouseEnter(object sender, MouseEventArgs e)
+        private void PlayerAreaGrid_MouseEnter(object sender, MouseEventArgs e)
         {
-            GameGrid.Focus();
+            PlayerAreaGrid.Focus();
         }
 
         private void ShipRadioButton_Checked(object sender, RoutedEventArgs e)

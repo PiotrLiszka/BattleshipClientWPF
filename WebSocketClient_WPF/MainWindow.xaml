@@ -14,7 +14,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Play area, left side of the window -->
-        <Grid Focusable="True" KeyDown="Grid_KeyDown" MouseEnter="GameGrid_MouseEnter" x:Name="GameGrid">
+        <Grid Focusable="True" x:Name="GameGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width=".5*" />
                 <ColumnDefinition Width=".5*" />
@@ -28,7 +28,7 @@
             <Border BorderThickness="3,3,3,3" BorderBrush="Black" CornerRadius="5" Padding="2" Margin="2">
                 <StackPanel x:Name="PlayerBoardStackPanel" Orientation="Vertical">
                     <Label Content="Your board" HorizontalContentAlignment="Center" Padding="30" FontSize="25"/>
-                    <Grid x:Name="PlayerAreaGrid" Margin="5,50,5,5" />
+                    <Grid x:Name="PlayerAreaGrid" Margin="5,50,5,5"  KeyDown="PlayerAreaGrid_KeyDown" MouseEnter="PlayerAreaGrid_MouseEnter" Focusable="True"/>
                     <Label Content="{Binding SelectedBox}" HorizontalContentAlignment="Center" />
                 </StackPanel>
             </Border>
