@@ -29,7 +29,9 @@ namespace WebSocketClient_WPF
 
         private MainWindowViewModel _vm;
 
-        private Rectangle[,] _playerBoardElements = new Rectangle[10,10];
+        private PlayerCell[,] _playerCells = new PlayerCell[10,10];
+
+        private int _shipsToPlace = 10;
 
         public MainWindow()
         {
@@ -110,7 +112,8 @@ namespace WebSocketClient_WPF
 
                     if (playableAreaGrid.Name == EnemyAreaGrid.Name)
                         return;
-                    _playerBoardElements[j - 1, i - 1] = field;
+
+                    _playerCells[j - 1, i - 1] = new PlayerCell(field, 0);
                 }
             }
         }
@@ -143,67 +146,88 @@ namespace WebSocketClient_WPF
             if (sender == null)
                 return;
 
-            var fields = GetFieldsArray(sender);
+            var cells = GetCellsArray(sender);
 
-            foreach (Rectangle rectangle in fields)
+            if (cells.Length == 0)
+                return;
+
+            if (CheckCollision(cells))
+                return;
+
+            foreach (PlayerCell cell in cells)
             {
-                rectangle.Fill = Brushes.Black;
+                cell.Field.Fill = Brushes.Black;
+                cell.Placed = 2;
             }
 
-            //if (sender is Rectangle)
-            //{
-            //    var element = (Rectangle)sender;
-            //    if (element != null && element.Tag != null)
-            //    {
-            //        _vm.SelectedBox = element.Tag.ToString();
-            //        element.Fill = Brushes.Black;
-            //    }
-            //}
+            _vm.DecreaseShipCount();
+            if (--_shipsToPlace == 0)
+                ReadyButton.IsEnabled = true;
         }
+
 
         private void MouseEnterField(object sender, MouseEventArgs e)
         {
-            EnterLeaveFieldColorChange(sender, true);
+            MouseHighlightField(sender, true);
         }
 
         private void MouseLeaveField(object sender, MouseEventArgs e)
         {
-            EnterLeaveFieldColorChange(sender, false);
+            MouseHighlightField(sender, false);
         }
 
-        private void EnterLeaveFieldColorChange(object sender, bool enter)
+        private void MouseHighlightField(object sender, bool enter)
         {
-            var fields = GetFieldsArray(sender);
+            var cells = GetCellsArray(sender);
 
-            foreach (Rectangle rectangle in fields)
+            if (cells.Length == 0) 
+                return;
+
+            bool collision = CheckCollision(cells);
+
+            foreach (PlayerCell cell in cells)
             {
-                if (rectangle.Fill == Brushes.Black)
+                if (cell.Field.Fill == Brushes.Black)
                     continue;
+
+                if(!enter)
+                {
+                    cell.Field.Fill = Brushes.Transparent;
+                    continue;
+                }
+
+                if (collision)
+                {
+                    cell.Field.Fill = Brushes.Red;
+                    continue;
+                }
+
                 if (enter)
-                    rectangle.Fill = Brushes.Gray;
-                else
-                    rectangle.Fill = Brushes.Transparent;
+                    cell.Field.Fill = Brushes.Gray;
+            }
+        }
+
+        private bool CheckCollision(PlayerCell[] playerCells)
+        {
+            bool collision = false;
+
+            foreach(PlayerCell cell in playerCells)
+            {
+                if (cell.Placed !=0)
+                    collision = true;
             }
 
-            //if (sender is Rectangle)
-            //{
-            //    var element = sender as Rectangle;
-            //    if (element is null)
-            //        return;
-            //    if (element.Fill == Brushes.Black)
-            //        return;
-
-            //    if (enter)
-            //        element.Fill = Brushes.Gray;
-            //    else
-            //        element.Fill = Brushes.Transparent;
-            //}
+            return collision;
         }
 
-        private Rectangle[] GetFieldsArray(object sender)
+        private PlayerCell[] GetCellsArray(object sender)
         {
+
+            if (sender is not Rectangle)
+                return [];
+
             var baseField = (Rectangle)sender;
-            
+
             string? coords = baseField.Tag.ToString();
             if (string.IsNullOrEmpty(coords)) 
                 return [];
@@ -211,30 +235,35 @@ namespace WebSocketClient_WPF
             int row = (int)char.GetNumericValue(coords[1]);
 
             if (_vm.ShipLength == 0)
-                return [_playerBoardElements[col, row]];
+                return [];
 
-            Rectangle[] fields = new Rectangle[_vm.ShipLength];
+            if (_vm.ShipLength == 1)
+                return [_playerCells[col, row]];
+
+            PlayerCell[] cells = new PlayerCell[_vm.ShipLength];
 
             if (_vm.ShipOrientation == MainWindowViewModel.ShipOrientations.Horizontal)
             {
+                // simple out of bounds check
                 if (col + _vm.ShipLength > 10)
                     col = 10 - _vm.ShipLength;
 
                 for (int i = 0; i < _vm.ShipLength; i++)
                 {
-                    fields[i] = _playerBoardElements[col + i, row];
+                    cells[i] = _playerCells[col + i, row];
                 }
-                return fields;
+                return cells;
             }
 
+            // simple out of bounds check
             if (row + _vm.ShipLength > 10)
                 row = 10 - _vm.ShipLength;
 
             for (int i = 0; i < _vm.ShipLength; i++)
             {
-                fields[i] = _playerBoardElements[col, row + i];
+                cells[i] = _playerCells[col, row + i];
             }
-            return fields;
+            return cells;
         }
 
         private void PlayerAreaGrid_KeyDown(object sender, KeyEventArgs e)
@@ -242,10 +271,9 @@ namespace WebSocketClient_WPF
             // rotate ship orientation at the ship placing phase
             if (e.Key == Key.R)
             {
-                if (_vm.ShipLength == 1)
-                {
+                if (_vm.ShipLength == 0 || _vm.ShipLength == 1)
                     return;
-                }
+
                 // check if mouse is over gameboards field, if so try to dynamically rotate ship
                 var obj = Mouse.DirectlyOver;
                 if (obj == null)
@@ -261,9 +289,9 @@ namespace WebSocketClient_WPF
                 if (border.Tag.ToString() != "field")
                     return;
 
-                EnterLeaveFieldColorChange(field, false);
+                MouseHighlightField(field, false);
                 _vm.ChangeShipOrientation();
-                EnterLeaveFieldColorChange(field, true);
+                MouseHighlightField(field, true);
 
             }
         }
@@ -294,6 +322,33 @@ namespace WebSocketClient_WPF
                 default:
                     break;
 
+            }
+            _vm.checkedShipSizeRadioButton = radiobutton;
+        }
+
+
+        private void Button_Click_PlayerReady(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Button_Click_ResetShips(object sender, RoutedEventArgs e)
+        {
+            Size1Radio.IsEnabled = true;
+            Size2Radio.IsEnabled = true;
+            Size3Radio.IsEnabled = true;
+            Size4Radio.IsEnabled = true;
+            ReadyButton.IsEnabled = false;
+            _vm.ShipSize1Count = 4;
+            _vm.ShipSize2Count = 3;
+            _vm.ShipSize3Count = 2;
+            _vm.ShipSize4Count = 1;
+            _shipsToPlace = 10;
+
+            foreach(PlayerCell cell in _playerCells)
+            {
+                cell.Field.Fill = Brushes.Transparent;
+                cell.Placed = 0;
             }
         }
     }
